@@ -79,3 +79,5 @@ var XMLHttpRequest = function() {
   }
 }
 
+module.exports = XMLHttpRequest;
+
