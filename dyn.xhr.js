@@ -33,12 +33,12 @@ var XMLHttpRequest = function() {
       request += k + ": " + _headers[k] + "\r\n";
     }
     request += ("\r\n" + data);
-    print(request);
     return request;
   }
 
   var _parseResponse = function(data) {
-    print(data.split("\r\n")[0].split("\s"));
+    var resp = data.split("\r\n");
+    that.status = resp[0].split(" ")[1];
   }
 
   this.status = 0;
@@ -52,22 +52,21 @@ var XMLHttpRequest = function() {
     _channel.connect(_address, null, new java.nio.channels.CompletionHandler({
       completed: function(result, attachment) {
         that.readyState = 1;
-        that.onreadystatechange();
-        print("connected");
         _channel.write(bb, null, new java.nio.channels.CompletionHandler({
           completed: function(result, attachment) {
-            print("written!");
             var bb = java.nio.ByteBuffer.allocate(4096);
             _channel.read(bb, null, new java.nio.channels.CompletionHandler({
               completed: function(result, attachment) {
                 var str = new java.lang.String(bb.array());
                 var resp = _parseResponse(str);
                 _channel.close();
+                that.readyState = 4;
+                that.onreadystatechange();
               }
             }));
           },
           failed: function(err, attachment) {
-            print("err");
+            print(err);
             _channel.close();
           }
         }));
@@ -80,9 +79,3 @@ var XMLHttpRequest = function() {
   }
 }
 
-xhr = new XMLHttpRequest();
-xhr.open("POST", "http://localhost:8080/logs/bbe3a2f5-5170-4a02-af1b-24622692af27", true);
-xhr.setRequestHeader("Content-Type", "text/plain");
-xhr.send("some data");
-
-java.lang.Thread.sleep(1000);
